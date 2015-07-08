@@ -62,11 +62,9 @@ public class Main_SensorDataProcessor {
 		modifyColumn(dir, "acc.csv", "a.csv", 'A', dateResolve, separator);
 		modifyColumn(dir, "gyr.csv", "g.csv", 'A', dateResolve, separator);
 		modifyColumn(dir, "mag.csv", "mag1.csv", 'A', dateResolve, separator);
-		modifyColumn(dir, "mag1.csv", "mag2.csv", 'E', x -> Optional.empty(),
+		modifyColumn(dir, "mag1.csv", "m.csv", 'E', x -> Optional.empty(),
 				separator);
 		new File(dir, "mag1.csv").delete();
-		toSpherical(dir, "mag2.csv", "m.csv", 'B', separator);
-		new File(dir, "mag2.csv").delete();
 		mergeByIndex(dir, new String[] { "m.csv", "g.csv", "a.csv" },
 				"combined0.csv", separator, 1);
 		new File(dir, "a.csv").delete();
@@ -74,7 +72,7 @@ public class Main_SensorDataProcessor {
 		new File(dir, "m.csv").delete();
 		trimPartiallyEmpty(dir, "combined0.csv", "C-readable.csv", ",");
 		new File(dir, "combined0.csv").delete();
-		class Splitter implements
+		class TimeElapser implements
 				Function<Pair<String, String>, Optional<String>> {
 			double start = -1;
 			@Override
@@ -87,8 +85,10 @@ public class Main_SensorDataProcessor {
 						+ (Double.parseDouble(t.key) - start));
 			}
 		}
-		modifyColumn(dir, "C-readable.csv", "human-readable.csv", 'A',
-				new Splitter(), separator);
+		toSpherical(dir, "C-readable.csv", "wpolar.csv", 'B', separator);
+		modifyColumn(dir, "wpolar.csv", "human-readable.csv", 'A',
+				new TimeElapser(), separator);
+		new File(dir, "wpolar.csv").delete();
 		pullFirst(dir, "human-readable.csv",
 				String.format("human-readable-first-%d.csv", rows), rows);
 	}
