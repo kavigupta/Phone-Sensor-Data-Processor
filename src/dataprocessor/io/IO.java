@@ -15,10 +15,14 @@ public class IO {
 	}
 	public static ArrayList<String> readLines(File file)
 			throws FileNotFoundException, IOException {
+		return readLines(file, Long.MAX_VALUE);
+	}
+	public static ArrayList<String> readLines(File file, long rows)
+			throws FileNotFoundException, IOException {
 		ArrayList<String> lines = new ArrayList<>();
 		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 			String ln;
-			while ((ln = br.readLine()) != null)
+			while ((ln = br.readLine()) != null && lines.size() < rows)
 				lines.add(ln);
 		}
 		return lines;

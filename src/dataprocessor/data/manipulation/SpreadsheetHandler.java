@@ -1,4 +1,4 @@
-package data.manipulation;
+package dataprocessor.data.manipulation;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -79,6 +79,9 @@ public class SpreadsheetHandler {
 		}
 		IO.writeLines(new File(dir, out), result);
 	}
+	/**
+	 * The function is (cell, separator)-> Optional(new cell)
+	 */
 	public static void modifyColumn(String dir, String in, String out,
 			char columnName,
 			Function<Pair<String, String>, Optional<String>> modifier,
@@ -152,5 +155,10 @@ public class SpreadsheetHandler {
 				cellsep.key);
 		if (!mat.find()) return Optional.empty();
 		return Optional.of(mat.group(1) + cellsep.value + mat.group(2));
+	}
+	public static void pullFirst(String dir, String in, String out, int rows)
+			throws FileNotFoundException, IOException {
+		IO.writeLines(new File(dir, out),
+				IO.readLines(new File(dir, in), rows));
 	}
 }

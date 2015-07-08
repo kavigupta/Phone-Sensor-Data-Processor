@@ -1,7 +1,8 @@
 package dataprocessor.main;
 
-import static data.manipulation.SpreadsheetHandler.mergeByIndex;
-import static data.manipulation.SpreadsheetHandler.modifyColumn;
+import static dataprocessor.data.manipulation.SpreadsheetHandler.mergeByIndex;
+import static dataprocessor.data.manipulation.SpreadsheetHandler.modifyColumn;
+import static dataprocessor.data.manipulation.SpreadsheetHandler.pullFirst;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -16,12 +17,12 @@ import java.util.stream.Collectors;
 import dataprocessor.io.IO;
 import dataprocessor.struct.Pair;
 
-public class SensorDataProcessor {
+public class Main_SensorDataProcessor {
 	public static void main(String[] args) throws FileNotFoundException,
 			IOException {
 		processAccGyrMagData(
 				"/home/kavi/Dropbox/workspaces/C/Magnetometer Processor/data/2015-07-08-minglei",
-				",");
+				",", 1000);
 	}
 	/**
 	 * Processes a folder containing acceleration, gyroscope, and magnetometer
@@ -39,14 +40,22 @@ public class SensorDataProcessor {
 	 * The {@code separator} variable is used to contain the cell separator the
 	 * file uses.
 	 * 
-	 * This program will use a file at
+	 * This program will produce an output file at
 	 * 
 	 * <pre>
-	 * @code {dir}/mag.csv
+	 * {dir}/human-readable.csv
 	 * </pre>
+	 * 
+	 * for human processing and an output file at
+	 * 
+	 * <pre>
+	 * {dir}/C-readable.csv
+	 * </pre>
+	 * 
+	 * for the C program
 	 */
-	public static void processAccGyrMagData(String dir, String separator)
-			throws FileNotFoundException, IOException {
+	public static void processAccGyrMagData(String dir, String separator,
+			int rows) throws FileNotFoundException, IOException {
 		Function<Pair<String, String>, Optional<String>> dateResolve = x -> timeToSeconds(
 				"(?<hour>\\d\\d):(?<min>\\d\\d):(?<sec>[0-9]+):(?<fracsec>[0-9])",
 				x.key);
@@ -55,10 +64,33 @@ public class SensorDataProcessor {
 		modifyColumn(dir, "mag.csv", "mag1.csv", 'A', dateResolve, separator);
 		modifyColumn(dir, "mag1.csv", "mag2.csv", 'E', x -> Optional.empty(),
 				separator);
+		new File(dir, "mag1.csv").delete();
 		toSpherical(dir, "mag2.csv", "m.csv", 'B', separator);
+		new File(dir, "mag2.csv").delete();
 		mergeByIndex(dir, new String[] { "m.csv", "g.csv", "a.csv" },
-				"combined0.csv", separator, 3);
-		trimPartiallyEmpty(dir, "combined0.csv", "combined.csv", ",");
+				"combined0.csv", separator, 1);
+		new File(dir, "a.csv").delete();
+		new File(dir, "g.csv").delete();
+		new File(dir, "m.csv").delete();
+		trimPartiallyEmpty(dir, "combined0.csv", "C-readable.csv", ",");
+		new File(dir, "combined0.csv").delete();
+		class Splitter implements
+				Function<Pair<String, String>, Optional<String>> {
+			double start = -1;
+			@Override
+			public Optional<String> apply(Pair<String, String> t) {
+				if (!t.key.matches("[\\-\\.0-9]+"))
+					return Optional.of("Clock Time (s)" + t.value
+							+ "Elapsed Time (s)");
+				if (start < 0) start = Double.parseDouble(t.key);
+				return Optional.of(t.key + t.value
+						+ (Double.parseDouble(t.key) - start));
+			}
+		}
+		modifyColumn(dir, "C-readable.csv", "human-readable.csv", 'A',
+				new Splitter(), separator);
+		pullFirst(dir, "human-readable.csv",
+				String.format("human-readable-first-%d.csv", rows), rows);
 	}
 	public static Optional<String> timeToSeconds(String format, String cell) {
 		Matcher mat = Pattern.compile(format).matcher(cell);
