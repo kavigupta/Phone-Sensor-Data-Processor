@@ -20,9 +20,31 @@ public class SensorDataProcessor {
 	public static void main(String[] args) throws FileNotFoundException,
 			IOException {
 		processAccGyrMagData(
-				"/home/kavi/Dropbox/workspaces/C/Magnetometer Processor/data/2015-07-07-02-kavi",
+				"/home/kavi/Dropbox/workspaces/C/Magnetometer Processor/data/2015-07-08-minglei",
 				",");
 	}
+	/**
+	 * Processes a folder containing acceleration, gyroscope, and magnetometer
+	 * data. The data must be as follows
+	 * 
+	 * <pre>
+	 * {dir}/mag.csv
+	 * {dir}/gyr.csv
+	 * {dir}/acc.csv
+	 * </pre>
+	 * 
+	 * where all files have headers and contain the columns {@code Time x y z}
+	 * with any number of additional columns optional.
+	 * 
+	 * The {@code separator} variable is used to contain the cell separator the
+	 * file uses.
+	 * 
+	 * This program will use a file at
+	 * 
+	 * <pre>
+	 * @code {dir}/mag.csv
+	 * </pre>
+	 */
 	public static void processAccGyrMagData(String dir, String separator)
 			throws FileNotFoundException, IOException {
 		Function<Pair<String, String>, Optional<String>> dateResolve = x -> timeToSeconds(
