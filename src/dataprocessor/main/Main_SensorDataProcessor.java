@@ -94,7 +94,17 @@ public class Main_SensorDataProcessor {
 	}
 	public static Optional<String> timeToSeconds(String format, String cell) {
 		Matcher mat = Pattern.compile(format).matcher(cell);
-		if (!mat.find()) return Optional.of(cell);
+		if (!mat.find()) {
+			try {
+				// try just decimal data. Round to nearest tenth of a
+				// second.
+				return Optional.of(String.format("%.1f",
+						Double.parseDouble(cell)));
+			} catch (NumberFormatException e) {
+				// Assume text
+				return Optional.of(cell);
+			}
+		}
 		return Optional.of(Double.toString(Double.parseDouble(mat
 				.group("hour"))
 				* 3600.
@@ -124,10 +134,10 @@ public class Main_SensorDataProcessor {
 				buff.append(r).append(sep).append(theta).append(sep)
 						.append(phi).append(sep);
 			} else {
-				buff.append(
-						cells[colxi].substring(0,
-								cells[colxi].length() - 1)).append("r")
-						.append(sep);
+				System.out.println(line);
+				buff.append(cells[colxi].substring(0,
+						cells[colxi].length() - 1));
+				buff.append("r").append(sep);
 				buff.append(
 						cells[colxi + 1].substring(0,
 								cells[colxi + 1].length() - 1))
@@ -148,6 +158,7 @@ public class Main_SensorDataProcessor {
 	public static void trimPartiallyEmpty(String dir, String in, String out,
 			String sep) throws FileNotFoundException, IOException {
 		ArrayList<String> lines = IO.readLines(new File(dir, in));
+		System.out.println(lines);
 		ArrayList<String> output = new ArrayList<String>();
 		output.add(lines.get(0));
 		int start = -1;
@@ -162,7 +173,7 @@ public class Main_SensorDataProcessor {
 			end = i;
 			break;
 		}
-		output.addAll(lines.subList(start, end));
+		if (start > -1 && end > -1) output.addAll(lines.subList(start, end));
 		IO.writeLines(new File(dir, out), output);
 	}
 }
