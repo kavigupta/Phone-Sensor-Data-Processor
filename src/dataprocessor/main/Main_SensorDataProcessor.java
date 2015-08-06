@@ -21,7 +21,7 @@ public class Main_SensorDataProcessor {
 	public static void main(String[] args) throws FileNotFoundException,
 			IOException {
 		processAccGyrMagData(
-				"C:\\Users\\minglei\\git\\Calibration-Sensor-Microcontroller\\data\\2015-07-08-minglei",
+				"/home/harveylu/workspace/summer/Calibration-Sensor-Microcontroller/data/2015-07-08-minglei",
 				",", 1000);
 	}
 	/**
