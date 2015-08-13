@@ -20,9 +20,11 @@ import dataprocessor.struct.Pair;
 public class Main_SensorDataProcessor {
 	public static void main(String[] args) throws FileNotFoundException,
 			IOException {
-		processAccGyrMagData(
-				"/home/kavi/Dropbox/workspaces/C/Magnetometer Processor/data/2015-07-22",
-				",", 1000);
+		String dataDir = "/home/kavi/Dropbox/workspaces/C/Magnetometer Processor/data";
+		for (File f : new File(dataDir).listFiles()) {
+			if (!f.isDirectory()) continue;
+			processAccGyrMagData(f.toString(), ",", 1000);
+		}
 	}
 	/**
 	 * Processes a folder containing acceleration, gyroscope, and magnetometer
@@ -59,13 +61,13 @@ public class Main_SensorDataProcessor {
 		Function<Pair<String, String>, Optional<String>> dateResolve = x -> timeToSeconds(
 				"(?<hour>\\d\\d):(?<min>\\d\\d):(?<sec>[0-9]+):(?<fracsec>[0-9])",
 				x.key);
-		modifyColumn(dir, "acc.csv", "a.csv", 'A', dateResolve, separator);
-		modifyColumn(dir, "gyr.csv", "g.csv", 'A', dateResolve, separator);
-		modifyColumn(dir, "mag.csv", "mag1.csv", 'A', dateResolve, separator);
+		modifyColumn(dir, "acc*.csv", "a.csv", 'A', dateResolve, separator);
+		modifyColumn(dir, "gyr*.csv", "g.csv", 'A', dateResolve, separator);
+		modifyColumn(dir, "mag*.csv", "mag1.csv", 'A', dateResolve, separator);
 		modifyColumn(dir, "mag1.csv", "m.csv", 'E', x -> Optional.empty(),
 				separator);
 		new File(dir, "mag1.csv").delete();
-		mergeByIndex(dir, new String[] { "m.csv", "g.csv", "a.csv" },
+		mergeByIndex(dir, new String[] { "a.csv", "g.csv", "m.csv" },
 				"combined0.csv", separator, 1);
 		new File(dir, "a.csv").delete();
 		new File(dir, "g.csv").delete();
@@ -135,17 +137,12 @@ public class Main_SensorDataProcessor {
 						.append(phi).append(sep);
 			} else {
 				System.out.println(line);
-				buff.append(cells[colxi].substring(0,
-						cells[colxi].length() - 1));
+				buff.append(allButLast(cells[colxi]));
 				buff.append("r").append(sep);
-				buff.append(
-						cells[colxi + 1].substring(0,
-								cells[colxi + 1].length() - 1))
-						.append("theta").append(sep);
-				buff.append(
-						cells[colxi + 2].substring(0,
-								cells[colxi + 2].length() - 1))
-						.append("phi").append(sep);
+				buff.append(allButLast(cells[colxi + 1])).append("theta")
+						.append(sep);
+				buff.append(allButLast(cells[colxi + 2])).append("phi")
+						.append(sep);
 			}
 			for (int i = colxi + 3; i < cells.length; i++) {
 				buff.append(cells[i]).append(sep);
@@ -175,5 +172,9 @@ public class Main_SensorDataProcessor {
 		}
 		if (start > -1 && end > -1) output.addAll(lines.subList(start, end));
 		IO.writeLines(new File(dir, out), output);
+	}
+	private static String allButLast(String s) {
+		if (s.length() == 0) return "";
+		return s.substring(0, s.length() - 1);
 	}
 }

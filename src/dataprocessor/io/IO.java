@@ -2,6 +2,9 @@ package dataprocessor.io;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.Arrays;
+
+import org.apache.commons.io.filefilter.WildcardFileFilter;
 
 public class IO {
 	public static String readLine(RandomAccessFile wiki) throws IOException {
@@ -19,6 +22,16 @@ public class IO {
 	}
 	public static ArrayList<String> readLines(File file, long rows)
 			throws FileNotFoundException, IOException {
+		if (file.getName().contains("*")) {
+			String[] alternatives = file.getParentFile().list(
+					new WildcardFileFilter(file.getName()));
+			if (alternatives.length == 0)
+				throw new FileNotFoundException("Anything matching " + file);
+			if (alternatives.length > 1)
+				throw new IOException("Too many matches for " + file + "; "
+						+ Arrays.toString(alternatives));
+			file = new File(file.getParentFile(), alternatives[0]);
+		}
 		ArrayList<String> lines = new ArrayList<>();
 		try (BufferedReader br = new BufferedReader(new FileReader(file))) {
 			String ln;
