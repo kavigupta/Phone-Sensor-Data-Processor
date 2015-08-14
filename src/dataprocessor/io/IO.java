@@ -2,7 +2,6 @@ package dataprocessor.io;
 
 import java.io.*;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 import org.apache.commons.io.filefilter.WildcardFileFilter;
 
@@ -27,10 +26,13 @@ public class IO {
 					new WildcardFileFilter(file.getName()));
 			if (alternatives.length == 0)
 				throw new FileNotFoundException("Anything matching " + file);
-			if (alternatives.length > 1)
-				throw new IOException("Too many matches for " + file + "; "
-						+ Arrays.toString(alternatives));
-			file = new File(file.getParentFile(), alternatives[0]);
+			ArrayList<String> total = new ArrayList<String>();
+			for (String f : alternatives) {
+				total.addAll(readLines(new File(file.getParentFile(), f),
+						rows - total.size()));
+				if (total.size() >= rows) break;
+			}
+			return total;
 		}
 		ArrayList<String> lines = new ArrayList<>();
 		try (BufferedReader br = new BufferedReader(new FileReader(file))) {

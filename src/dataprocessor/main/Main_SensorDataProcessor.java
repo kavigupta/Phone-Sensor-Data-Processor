@@ -23,6 +23,7 @@ public class Main_SensorDataProcessor {
 		String dataDir = "/home/kavi/Dropbox/workspaces/C/Magnetometer Processor/data";
 		for (File f : new File(dataDir).listFiles()) {
 			if (!f.isDirectory()) continue;
+			System.out.println("Processing " + f);
 			processAccGyrMagData(f.toString(), ",", 1000);
 		}
 	}
@@ -63,10 +64,10 @@ public class Main_SensorDataProcessor {
 				x.key);
 		modifyColumn(dir, "acc*.csv", "a.csv", 'A', dateResolve, separator);
 		modifyColumn(dir, "gyr*.csv", "g.csv", 'A', dateResolve, separator);
-		modifyColumn(dir, "mag*.csv", "mag1.csv", 'A', dateResolve, separator);
-		modifyColumn(dir, "mag1.csv", "m.csv", 'E', x -> Optional.empty(),
+		modifyColumn(dir, "mag*.csv", "m1.csv", 'A', dateResolve, separator);
+		modifyColumn(dir, "m1.csv", "m.csv", 'E', x -> Optional.empty(),
 				separator);
-		new File(dir, "mag1.csv").delete();
+		new File(dir, "m1.csv").delete();
 		mergeByIndex(dir, new String[] { "a.csv", "g.csv", "m.csv" },
 				"combined0.csv", separator, 1);
 		new File(dir, "a.csv").delete();
@@ -87,7 +88,8 @@ public class Main_SensorDataProcessor {
 						+ (Double.parseDouble(t.key) - start));
 			}
 		}
-		toSpherical(dir, "C-readable.csv", "wpolar.csv", 'B', separator);
+		toSpherical(dir, "C-readable.csv", "wpolar.csv",
+				(char) ('A' + 1 + 6), separator);
 		modifyColumn(dir, "wpolar.csv", "human-readable.csv", 'A',
 				new TimeElapser(), separator);
 		new File(dir, "wpolar.csv").delete();
@@ -136,7 +138,6 @@ public class Main_SensorDataProcessor {
 				buff.append(r).append(sep).append(theta).append(sep)
 						.append(phi).append(sep);
 			} else {
-				System.out.println(line);
 				buff.append(allButLast(cells[colxi]));
 				buff.append("r").append(sep);
 				buff.append(allButLast(cells[colxi + 1])).append("theta")
@@ -155,22 +156,12 @@ public class Main_SensorDataProcessor {
 	public static void trimPartiallyEmpty(String dir, String in, String out,
 			String sep) throws FileNotFoundException, IOException {
 		ArrayList<String> lines = IO.readLines(new File(dir, in));
-		System.out.println(lines);
 		ArrayList<String> output = new ArrayList<String>();
 		output.add(lines.get(0));
-		int start = -1;
 		for (int i = 1; i < lines.size(); i++) {
 			if (lines.get(i).contains(sep + sep)) continue;
-			start = i;
-			break;
+			output.add(lines.get(i));
 		}
-		int end = -1;
-		for (int i = lines.size() - 1; i >= 0; i--) {
-			if (lines.get(i).contains(sep + sep)) continue;
-			end = i;
-			break;
-		}
-		if (start > -1 && end > -1) output.addAll(lines.subList(start, end));
 		IO.writeLines(new File(dir, out), output);
 	}
 	private static String allButLast(String s) {

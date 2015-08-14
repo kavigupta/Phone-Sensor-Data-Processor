@@ -35,21 +35,23 @@ public class SpreadsheetHandler {
 				header += IO.nameOf(in[i]) + cells[j] + separator;
 			}
 			for (int row = 1; row < lines.size(); row++) {
-				int sep = lines.get(row).indexOf(separator);
-				double key = Double.parseDouble(lines.get(row).substring(0,
-						sep));
-				if (values.get(key) == null) {
-					ArrayList<ArrayList<String>> table = new ArrayList<ArrayList<String>>();
-					for (int i2 = 0; i2 < in.length; i2++) {
-						table.add(new ArrayList<>());
+				try {
+					int sep = lines.get(row).indexOf(separator);
+					double key = Double.parseDouble(lines.get(row)
+							.substring(0, sep));
+					if (values.get(key) == null) {
+						ArrayList<ArrayList<String>> table = new ArrayList<ArrayList<String>>();
+						for (int i2 = 0; i2 < in.length; i2++) {
+							table.add(new ArrayList<>());
+						}
+						values.put(key, table);
 					}
-					values.put(key, table);
-				}
-				if (values.get(key).get(i).size() < limit)
-					values.get(key)
-							.get(i)
-							.add(lines.get(row).substring(
-									sep + separator.length()));
+					if (values.get(key).get(i).size() < limit)
+						values.get(key)
+								.get(i)
+								.add(lines.get(row).substring(
+										sep + separator.length()));
+				} catch (RuntimeException e) {}
 			}
 		}
 		String[] empty = new String[in.length];
